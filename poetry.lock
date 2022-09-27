@@ -94,6 +94,17 @@ socks = ["PySocks (>=1.5.6,!=1.5.7)"]
 use_chardet_on_py3 = ["chardet (>=3.0.2,<6)"]
 
 [[package]]
+name = "rocketchat-API"
+version = "1.26.0"
+description = "Python API wrapper for Rocket.Chat"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+requests = "*"
+
+[[package]]
 name = "urllib3"
 version = "1.26.12"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
@@ -109,7 +120,7 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "1e49036c27a11ab8a4bf4a8b442171d67e7d31caa67e2fee208e54d7ef9202a8"
+content-hash = "466e45a09170be65d1719e73eac1e56a586dcfb04ebdb21a6be58457ff429b00"
 
 [metadata.files]
 certifi = [
@@ -143,6 +154,10 @@ python-utils = [
 requests = [
     {file = "requests-2.28.1-py3-none-any.whl", hash = "sha256:8fefa2a1a1365bf5520aac41836fbee479da67864514bdb821f31ce07ce65349"},
     {file = "requests-2.28.1.tar.gz", hash = "sha256:7c5599b102feddaa661c826c56ab4fee28bfd17f5abca1ebbe3e7f19d7c97983"},
+]
+rocketchat-API = [
+    {file = "rocketchat_API-1.26.0-py3-none-any.whl", hash = "sha256:223812e8967d35a52cd03b9e88ae925b2fbc33e78ba1f2b7c7b7579e1575202a"},
+    {file = "rocketchat_API-1.26.0.tar.gz", hash = "sha256:640ffd87e5e1233a5131c657b2a7224810026d446b555f832ec089b948f2b96d"},
 ]
 urllib3 = [
     {file = "urllib3-1.26.12-py2.py3-none-any.whl", hash = "sha256:b930dd878d5a8afb066a637fbb35144fe7901e3b209d1cd4f524bd0e9deee997"},

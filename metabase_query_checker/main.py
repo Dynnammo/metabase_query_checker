@@ -1,11 +1,11 @@
 from metabase_api import Metabase_API
 from pprint import pp
 from dotenv import dotenv_values
+from .rocketchat_manager import send_rc_message
 import progressbar
 
 
-def connect():
-    config = dotenv_values()
+def connect(config):
     mb = Metabase_API(
         domain=config['METABASE_URL'],
         email=config['METABASE_USERNAME'],
@@ -13,7 +13,7 @@ def connect():
     )
     return mb
 
-def create_progressbar():
+def create_progressbar(mb):
     widgets = [' [',
             progressbar.Timer(format= 'elapsed time: %(elapsed)s'),
             '] ',
@@ -22,31 +22,52 @@ def create_progressbar():
     ]
 
     bar = progressbar.ProgressBar(
-        max_value=200, 
+        max_value=len(mb.get('/api/card', params={"f":"all"})), 
         widgets=widgets
     ).start()
 
     return bar
 
-def query_parser(bar, mb):
+def query_parser(bar, mb, unchecking_collections=[]):
     response = mb.get('/api/card', params={"f":"all"})
-    print(f"{len(response)} cards to be analyzed")
+    message = [
+        f"Analyzing cards from {mb.domain}",
+        f"{len(response)} cards to be analyzed\n"
+    ]
 
     for i, card in enumerate(response):
         card_id = card['id']
-        status = (mb.post(f"/api/card/{card_id}/query"))['status']
+        query_response = mb.post(f"/api/card/{card_id}/query")
+        status = query_response['status']
         card_map = {}
         if status != 'completed':
-            card_map[card_id] = status
+            collection_name = mb.get(f"/api/card/{card_id}")['collection']['name']
+            if collection_name not in unchecking_collections:
+                card_map[card_id] = {'status': status, 'collection' : collection_name}
         bar.update(i)
 
     if len(card_map) == 0:
-        print("All clear! All cards worked fine")
+        message.append("All clear! All cards worked fine!")
     else:
-        for card_id, status in card_map.items():
-            print(f"Card's status is {status}: click here {mb.domain}/card/{card_id} to correct")
+        for card_id, infos in card_map.items():
+            message.append(
+                f"Card's of ID {card_id} in collection {infos['collection']} status is {infos['status']}:"
+                f"click here {mb.domain}/card/{card_id} to correct"
+            )
+
+    return '\n'.join(message)
 
 def check_queries():
-    mb = connect()
-    widget_progress_bar = create_progressbar()
-    query_parser(widget_progress_bar, mb)
+    config = dotenv_values(".env.prod")
+    mb = connect(config)
+    widget_progress_bar = create_progressbar(mb)
+    message = query_parser(
+        widget_progress_bar,
+        mb,
+        ['Indicateurs croisés', ]
+    )
+    send_rc_message(
+        config,
+        message,
+        config["ROCKETCHAT_CHANNEL"]
+    )

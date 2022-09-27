@@ -12,6 +12,7 @@ python = "^3.10"
 metabase-api = "^0.2.15"
 progressbar2 = "^4.0.0"
 python-dotenv = "^0.21.0"
+rocketchat-API = "^1.26.0"
 
 [tool.poetry.scripts]
 check_queries = "metabase_query_checker.main:check_queries"
