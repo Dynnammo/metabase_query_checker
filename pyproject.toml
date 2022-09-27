@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "metabase-query-checker"
+version = "0.1.0"
+description = "A rather-simple script that helps data analyst to resolve incorrect queries on a Metabase instance."
+authors = ["THIVEND <baptiste.thivend@protonmail.com>"]
+license = "AGPLv3"
+readme = "README.md"
+packages = [{include = "metabase_query_checker"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+metabase-api = "^0.2.15"
+progressbar2 = "^4.0.0"
+python-dotenv = "^0.21.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
