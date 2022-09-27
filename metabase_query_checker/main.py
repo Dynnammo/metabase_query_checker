@@ -64,7 +64,7 @@ def check_queries():
     message = query_parser(
         widget_progress_bar,
         mb,
-        ['Indicateurs croisés', ]
+        []
     )
     send_rc_message(
         config,
