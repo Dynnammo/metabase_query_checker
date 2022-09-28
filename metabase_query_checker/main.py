@@ -44,7 +44,6 @@ def query_parser(bar, mb, unchecking_collections=[]):
             card_map[card_id] = {'status': status}
         bar.update(i)
 
-    import pdb; pdb.set_trace()
     if len(card_map) == 0:
         message.append("All clear! All cards worked fine!")
     else:
@@ -57,7 +56,7 @@ def query_parser(bar, mb, unchecking_collections=[]):
     return '\n'.join(message)
 
 def check_queries():
-    config = dotenv_values(".env.dev")
+    config = dotenv_values(dotenv_path=".env")
     mb = connect(config)
     widget_progress_bar = create_progressbar(mb)
     message = query_parser(

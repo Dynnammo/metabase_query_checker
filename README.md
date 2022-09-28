@@ -9,6 +9,8 @@ This project is build with .
 4. Launch the script : `poetry run check_queries`
 
 ## TODO
+- [ ] Specify env file to load in command line
 - [ ] Make Rocket.Chat notification optional
 - [ ] More informations on error : name of the card, error message
-
+- [ ] Specify cards to ignore by following means : collection_name, list of IDs to ignore
+- [ ] Launch script *only* on specified collections/id_list
