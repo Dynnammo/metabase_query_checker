@@ -35,36 +35,34 @@ def query_parser(bar, mb, unchecking_collections=[]):
         f"{len(response)} cards to be analyzed\n"
     ]
 
+    card_map = {}
     for i, card in enumerate(response):
         card_id = card['id']
         query_response = mb.post(f"/api/card/{card_id}/query")
         status = query_response['status']
-        card_map = {}
         if status != 'completed':
-            collection_name = mb.get(f"/api/card/{card_id}")['collection']['name']
-            if collection_name not in unchecking_collections:
-                card_map[card_id] = {'status': status, 'collection' : collection_name}
+            card_map[card_id] = {'status': status}
         bar.update(i)
 
+    import pdb; pdb.set_trace()
     if len(card_map) == 0:
         message.append("All clear! All cards worked fine!")
     else:
         for card_id, infos in card_map.items():
             message.append(
-                f"Card's of ID {card_id} in collection {infos['collection']} status is {infos['status']}:"
+                f"Card's of ID {card_id} status is {infos['status']}:"
                 f"click here {mb.domain}/card/{card_id} to correct"
             )
 
     return '\n'.join(message)
 
 def check_queries():
-    config = dotenv_values(".env.prod")
+    config = dotenv_values(".env.dev")
     mb = connect(config)
     widget_progress_bar = create_progressbar(mb)
     message = query_parser(
         widget_progress_bar,
-        mb,
-        []
+        mb
     )
     send_rc_message(
         config,
