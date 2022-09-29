@@ -1,15 +1,14 @@
 from metabase_api import Metabase_API
-from pprint import pp
-from dotenv import dotenv_values
+from importlib import import_module
 from .rocketchat_manager import send_rc_message
 import progressbar
 
 
 def connect(config):
     mb = Metabase_API(
-        domain=config['METABASE_URL'],
-        email=config['METABASE_USERNAME'],
-        password=config['METABASE_PASSWORD']
+        domain=config.METABASE_URL,
+        email=config.METABASE_USERNAME,
+        password=config.METABASE_PASSWORD
     )
     return mb
 
@@ -41,7 +40,11 @@ def query_parser(bar, mb, unchecking_collections=[]):
         query_response = mb.post(f"/api/card/{card_id}/query")
         status = query_response['status']
         if status != 'completed':
-            card_map[card_id] = {'status': status}
+            import pdb; pdb.set_trace()
+            collection = mb.get(f"/api/card/{card_id}").get('collection')
+            collection_name = collection.get('name') if collection is not None else ''
+            if collection_name not in unchecking_collections:
+                card_map[card_id] = {'status': status}
         bar.update(i)
 
     if len(card_map) == 0:
@@ -56,7 +59,8 @@ def query_parser(bar, mb, unchecking_collections=[]):
     return '\n'.join(message)
 
 def check_queries():
-    config = dotenv_values(dotenv_path=".env")
+    settings_file_name = input("Please enter the settings file name (default:settings): ") or "settings"
+    config = import_module(f"metabase_query_checker.{settings_file_name}")
     mb = connect(config)
     widget_progress_bar = create_progressbar(mb)
     message = query_parser(
@@ -66,5 +70,5 @@ def check_queries():
     send_rc_message(
         config,
         message,
-        config["ROCKETCHAT_CHANNEL"]
+        config.ROCKETCHAT_CHANNEL
     )
