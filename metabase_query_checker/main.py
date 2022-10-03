@@ -27,7 +27,7 @@ def create_progressbar(mb):
 
     return bar
 
-def query_parser(bar, mb, unchecking_collections=[]):
+def query_parser(bar, mb, ignored_collections=[]):
     response = mb.get('/api/card', params={"f":"all"})
     message = [
         f"Analyzing cards from {mb.domain}",
@@ -40,10 +40,9 @@ def query_parser(bar, mb, unchecking_collections=[]):
         query_response = mb.post(f"/api/card/{card_id}/query")
         status = query_response['status']
         if status != 'completed':
-            import pdb; pdb.set_trace()
             collection = mb.get(f"/api/card/{card_id}").get('collection')
             collection_name = collection.get('name') if collection is not None else ''
-            if collection_name not in unchecking_collections:
+            if collection_name not in ignored_collections:
                 card_map[card_id] = {'status': status}
         bar.update(i)
 
@@ -65,7 +64,8 @@ def check_queries():
     widget_progress_bar = create_progressbar(mb)
     message = query_parser(
         widget_progress_bar,
-        mb
+        mb,
+        config.IGNORED_COLLECTIONS
     )
     send_rc_message(
         config,
