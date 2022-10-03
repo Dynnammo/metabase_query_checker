@@ -2,6 +2,7 @@ from metabase_api import Metabase_API
 from importlib import import_module
 from .rocketchat_manager import send_rc_message
 import progressbar
+import argparse
 
 
 def connect(config):
@@ -57,8 +58,7 @@ def query_parser(bar, mb, ignored_collections=[]):
 
     return '\n'.join(message)
 
-def check_queries():
-    settings_file_name = input("Please enter the settings file name (default:settings): ") or "settings"
+def check_queries(settings_file_name):
     config = import_module(f"metabase_query_checker.{settings_file_name}")
     mb = connect(config)
     widget_progress_bar = create_progressbar(mb)
@@ -72,3 +72,15 @@ def check_queries():
         message,
         config.ROCKETCHAT_CHANNEL
     )
+
+def start():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        'settings_file_name',
+        type=str,
+        help='Name of the settings file',
+        default='settings'
+    )
+    args = parser.parse_args()
+    
+    check_queries(args.settings_file_name)

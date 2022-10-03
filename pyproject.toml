@@ -14,7 +14,7 @@ progressbar2 = "^4.0.0"
 rocketchat-API = "^1.26.0"
 
 [tool.poetry.scripts]
-check_queries = "metabase_query_checker.main:check_queries"
+start = "metabase_query_checker.main:start"
 
 
 [build-system]
