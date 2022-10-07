@@ -67,11 +67,16 @@ def check_queries(settings_file_name):
         mb,
         config.IGNORED_COLLECTIONS
     )
-    send_rc_message(
-        config,
-        message,
-        config.ROCKETCHAT_CHANNEL
-    )
+    print(message)
+    try:
+        send_rc_message(
+            config,
+            message,
+            config.ROCKETCHAT_CHANNEL
+        )
+        print("Sending notification to Rocket.Chat worked!")
+    except Exception:
+        print("Sending notification failed")
 
 def start():
     parser = argparse.ArgumentParser()
