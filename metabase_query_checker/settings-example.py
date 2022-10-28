@@ -5,4 +5,4 @@ ROCKETCHAT_URL="https://your.rocket.chat/"
 ROCKETCHAT_USERNAME="john@doe.com"
 ROCKETCHAT_PASSWORD="myrocketpassword"
 ROCKETCHAT_CHANNEL="yourchannel"
-IGNORED_COLLECTIONS=[]
+WANTED_COLLECTIONS=[]

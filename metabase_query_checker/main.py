@@ -13,7 +13,7 @@ def connect(config):
     )
     return mb
 
-def create_progressbar(mb):
+def create_progressbar(mb, value):
     widgets = [' [',
             progressbar.Timer(format= 'elapsed time: %(elapsed)s'),
             '] ',
@@ -22,29 +22,39 @@ def create_progressbar(mb):
     ]
 
     bar = progressbar.ProgressBar(
-        max_value=len(mb.get('/api/card', params={"f":"all"})), 
+        max_value=value, 
         widgets=widgets
     ).start()
 
     return bar
 
-def query_parser(bar, mb, ignored_collections=[]):
-    response = mb.get('/api/card', params={"f":"all"})
+def query_parser(mb, wanted_collections=[]):
+    cards = mb.get('/api/card', params={"f":"all"})
+    
+    filtered_cards = []
+    # Filter cards to be analyzed
+    if wanted_collections:
+        for card in cards:
+            collection_id = card['collection']['id'] if card['collection'] else None
+            if collection_id in wanted_collections:
+                filtered_cards.append(card)
+    else:
+        filtered_cards = cards
+
     message = [
         f"Analyzing cards from {mb.domain}",
-        f"{len(response)} cards to be analyzed\n"
+        f"{len(filtered_cards)} cards to be analyzed\n"
     ]
+    bar = create_progressbar(mb, len(filtered_cards))
 
+    # Check if card is working
     card_map = {}
-    for i, card in enumerate(response):
+    for i, card in enumerate(filtered_cards):
         card_id = card['id']
         query_response = mb.post(f"/api/card/{card_id}/query")
         status = query_response['status']
         if status != 'completed':
-            collection = mb.get(f"/api/card/{card_id}").get('collection')
-            collection_name = collection.get('name') if collection is not None else ''
-            if collection_name not in ignored_collections:
-                card_map[card_id] = {'status': status}
+            card_map[card_id] = {'status': status}
         bar.update(i)
 
     if len(card_map) == 0:
@@ -61,11 +71,9 @@ def query_parser(bar, mb, ignored_collections=[]):
 def check_queries(settings_file_name):
     config = import_module(f"metabase_query_checker.{settings_file_name}")
     mb = connect(config)
-    widget_progress_bar = create_progressbar(mb)
     message = query_parser(
-        widget_progress_bar,
         mb,
-        config.IGNORED_COLLECTIONS
+        config.WANTED_COLLECTIONS
     )
     print(message)
     try:
