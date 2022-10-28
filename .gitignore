@@ -1,4 +1,4 @@
 .env
 __pycache__
-**/settings.py
-**/settings-dev.py
+settings*.py
+!settings-example.py
