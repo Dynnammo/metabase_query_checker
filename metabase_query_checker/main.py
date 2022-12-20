@@ -3,6 +3,7 @@ from importlib import import_module
 from .rocketchat_manager import send_rc_message
 import progressbar
 import argparse
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 class MetabaseQueryChecker:
     def __init__(self, settings_file_name):
@@ -50,13 +51,23 @@ class MetabaseQueryChecker:
 
         # Check if card is working
         card_map = {}
-        for i, card in enumerate(filtered_cards):
+        
+        def check_card(card):
             card_id = card['id']
             query_response = self.mb.post(f"/api/card/{card_id}/query")
             status = query_response['status']
             if status != 'completed':
                 card_map[card_id] = {'status': status}
-            bar.update(i)
+
+        def runner():
+            threads = []
+            with ThreadPoolExecutor(max_workers=10) as executor:
+                for i, card in enumerate(filtered_cards):
+                    threads.append(executor.submit(check_card, card))
+                for j, task in enumerate(as_completed(threads)):
+                    bar.update(j)
+
+        runner()
 
         if len(card_map) == 0:
             message.append("All clear! All cards worked fine!")
@@ -68,6 +79,7 @@ class MetabaseQueryChecker:
                 )
 
         return '\n'.join(message)
+
 
     def check_queries(self):
         message = self.query_parser()
