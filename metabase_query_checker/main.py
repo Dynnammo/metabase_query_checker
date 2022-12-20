@@ -4,87 +4,83 @@ from .rocketchat_manager import send_rc_message
 import progressbar
 import argparse
 
-
-def connect(config):
-    mb = Metabase_API(
-        domain=config.METABASE_URL,
-        email=config.METABASE_USERNAME,
-        password=config.METABASE_PASSWORD
-    )
-    return mb
-
-def create_progressbar(mb, value):
-    widgets = [' [',
-            progressbar.Timer(format= 'elapsed time: %(elapsed)s'),
-            '] ',
-            progressbar.Bar('*'),' (',
-            progressbar.ETA(), ') ',
-    ]
-
-    bar = progressbar.ProgressBar(
-        max_value=value, 
-        widgets=widgets
-    ).start()
-
-    return bar
-
-def query_parser(mb, wanted_collections=[]):
-    cards = mb.get('/api/card', params={"f":"all"})
-    
-    filtered_cards = []
-    # Filter cards to be analyzed
-    if wanted_collections:
-        for card in cards:
-            collection_id = card['collection']['id'] if card['collection'] else None
-            if collection_id in wanted_collections:
-                filtered_cards.append(card)
-    else:
-        filtered_cards = cards
-
-    message = [
-        f"Analyzing cards from {mb.domain}",
-        f"{len(filtered_cards)} cards to be analyzed\n"
-    ]
-    bar = create_progressbar(mb, len(filtered_cards))
-
-    # Check if card is working
-    card_map = {}
-    for i, card in enumerate(filtered_cards):
-        card_id = card['id']
-        query_response = mb.post(f"/api/card/{card_id}/query")
-        status = query_response['status']
-        if status != 'completed':
-            card_map[card_id] = {'status': status}
-        bar.update(i)
-
-    if len(card_map) == 0:
-        message.append("All clear! All cards worked fine!")
-    else:
-        for card_id, infos in card_map.items():
-            message.append(
-                f"Card's of ID {card_id} status is {infos['status']}:"
-                f"click here {mb.domain}/card/{card_id} to correct"
-            )
-
-    return '\n'.join(message)
-
-def check_queries(settings_file_name):
-    config = import_module(f"metabase_query_checker.{settings_file_name}")
-    mb = connect(config)
-    message = query_parser(
-        mb,
-        config.WANTED_COLLECTIONS
-    )
-    print(message)
-    try:
-        send_rc_message(
-            config,
-            message,
-            config.ROCKETCHAT_CHANNEL
+class MetabaseQueryChecker:
+    def __init__(self, settings_file_name):
+        self.config = import_module(f"metabase_query_checker.{settings_file_name}")
+        self.mb = Metabase_API(
+            domain=self.config.METABASE_URL,
+            email=self.config.METABASE_USERNAME,
+            password=self.config.METABASE_PASSWORD
         )
-        print("Sending notification to Rocket.Chat worked!")
-    except Exception:
-        print("Sending notification failed")
+        self.collections = config.WANTED_COLLECTIONS
+
+    def create_progressbar(self, value):
+        widgets = [' [',
+                progressbar.Timer(format= 'elapsed time: %(elapsed)s'),
+                '] ',
+                progressbar.Bar('*'),' (',
+                progressbar.ETA(), ') ',
+        ]
+
+        bar = progressbar.ProgressBar(
+            max_value=value, 
+            widgets=widgets
+        ).start()
+
+        return bar
+
+    def query_parser(self):
+        cards = self.mb.get('/api/card', params={"f":"all"})
+        
+        filtered_cards = []
+        # Filter cards to be analyzed
+        if self.wanted_collections:
+            for card in cards:
+                collection_id = card['collection']['id'] if card['collection'] else None
+                if collection_id in self.wanted_collections:
+                    filtered_cards.append(card)
+        else:
+            filtered_cards = cards
+
+        message = [
+            f"Analyzing cards from {self.mb.domain}",
+            f"{len(filtered_cards)} cards to be analyzed\n"
+        ]
+        bar = self.create_progressbar(len(filtered_cards))
+
+        # Check if card is working
+        card_map = {}
+        for i, card in enumerate(filtered_cards):
+            card_id = card['id']
+            query_response = self.mb.post(f"/api/card/{card_id}/query")
+            status = query_response['status']
+            if status != 'completed':
+                card_map[card_id] = {'status': status}
+            bar.update(i)
+
+        if len(card_map) == 0:
+            message.append("All clear! All cards worked fine!")
+        else:
+            for card_id, infos in card_map.items():
+                message.append(
+                    f"Card's of ID {card_id} status is {infos['status']}:"
+                    f"click here {self.mb.domain}/card/{card_id} to correct"
+                )
+
+        return '\n'.join(message)
+
+    def check_queries(self):
+        message = self.query_parser()
+        print(message) 
+        try:
+            send_rc_message(
+                self.config,
+                message,
+                self.config.ROCKETCHAT_CHANNEL
+            )
+            print("Sending notification to Rocket.Chat worked!")
+        except Exception:
+            print("Sending notification failed")
 
 def start():
     parser = argparse.ArgumentParser()
@@ -96,4 +92,5 @@ def start():
     )
     args = parser.parse_args()
     
-    check_queries(args.settings_file_name)
+    mb_qc = MetabaseQueryChecker(args.settings_file_name)
+    mb_qc.check_queries()
