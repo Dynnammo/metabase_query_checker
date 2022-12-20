@@ -4,6 +4,7 @@ from .rocketchat_manager import send_rc_message
 import progressbar
 import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import os
 
 class MetabaseQueryChecker:
     def __init__(self, settings_file_name):
@@ -61,7 +62,7 @@ class MetabaseQueryChecker:
 
         def runner():
             threads = []
-            with ThreadPoolExecutor(max_workers=10) as executor:
+            with ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
                 for i, card in enumerate(filtered_cards):
                     threads.append(executor.submit(check_card, card))
                 for j, task in enumerate(as_completed(threads)):
