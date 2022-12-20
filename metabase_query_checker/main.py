@@ -12,7 +12,7 @@ class MetabaseQueryChecker:
             email=self.config.METABASE_USERNAME,
             password=self.config.METABASE_PASSWORD
         )
-        self.collections = config.WANTED_COLLECTIONS
+        self.wanted_collections = self.config.WANTED_COLLECTIONS
 
     def create_progressbar(self, value):
         widgets = [' [',
