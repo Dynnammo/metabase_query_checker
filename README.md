@@ -1,4 +1,6 @@
 # Metabase Query Checker
+:warning: This repository is archived, since its content was moved to https://github.com/OpenSourcePolitics/data_utils :warning:
+
 This small project aims to provide a simple way for data analysts using [Metabase](https://metabase.com) to check if there's queries that aren't working (i.e. the request failed due to unknown error), and send a Rocket.Chat notification.
 
 ## Setup
@@ -15,3 +17,4 @@ This project is build with .
 - [ ] Specify cards to ignore by following means : collection_name, list of IDs to ignore
 - [ ] Launch script *only* on specified collections/id_list
 - [ ] Add checking for cards on dashboards !
+
